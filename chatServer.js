@@ -36,8 +36,9 @@ const User = require('./models/user');
 //endSchema
 
 let urlMongo = "mongodb://localhost:27017/node_chat";
+let urlMongo1 = "mongodb+srv://hoangduy:hoangduy@cluster0-a0ada.mongodb.net/test?retryWrites=true";
 mongoose.Promise = global.Promise;
-mongoose.connect(urlMongo, { useNewUrlParser: true }).then(
+mongoose.connect(urlMongo1, { useNewUrlParser: true }).then(
     () => {
         console.log("connect OK");
         

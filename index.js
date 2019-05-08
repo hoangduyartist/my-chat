@@ -12,7 +12,7 @@ var server = require("http").Server(app);
 var io = require("socket.io")(server);
 server.listen(3000);
 
-//connect to server
+//connect to server - socket io
 io.on("connection",(socket)=>{
     //server send socketID back to client who connected
     socket.emit("S-send-socketID",socket.id);
@@ -41,10 +41,38 @@ io.on("connection",(socket)=>{
     });
 });
 
+// test connect mongoDBatlas
+var mongoClient = require('mongodb').MongoClient;
+const mongoose = require("mongoose");
+let uri = "mongodb+srv://admin:admin@firstcluster-tsfhe.mongodb.net";
+let uri1 = "mongodb+srv://admin:admin@firstcluster-tsfhe.mongodb.net/testDB";
+let mongoURI = "mongodb://admin:admin@firstcluster-shard-00-00-q9efv.mongodb.net:27017,firstcluster-shard-00-01-q9efv.mongodb.net:27017,firstcluster-shard-00-02-q9efv.mongodb.net:27017/testDB?ssl=true&replicaSet=FIRSTCluster-shard-0&authSource=admin&retryWrites=true";
+mongoose.Promise=global.Promise;
+// mongoose.connect(uri,{
+//     reconnectTries: 100,
+//     reconnectInterval: 500,
+//     autoReconnect: true,
+//     // useNewUrlParser: true,
+//     dbName: 'testDB',
+//     retryWrites: true
+// })
+mongoose.connect("mongodb+srv://hoangduy:hoangduy@cluster0-a0ada.mongodb.net/test?retryWrites=true")
+// mongoose.connect("mongodb+srv://nhd:nhd@firstcluster-tsfhe.mongodb.net/test?retryWrites=true")
+    .then(()=>{
+        console.log('connect OK');
+    })
+    .catch(e=>{console.log('connect DB failed')})
+// mongoClient.Promise=global.Promise;
+// mongoClient.connect(uri, { useNewUrlParser:true})
+// .then(()=>{
+//     console.log('connected');
+// })
+// .catch(e=>{console.log('connect failed')})
 
 app.get('/',function(req,res){
     res.render('testchat');
 });
+
 /*const port = 8080
 app.get('/', (req, res) => res.send('Hello World!'))
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))*/
