@@ -56,7 +56,8 @@ mongoose.Promise=global.Promise;
 //     dbName: 'testDB',
 //     retryWrites: true
 // })
-mongoose.connect("mongodb+srv://hoangduy:hoangduy@cluster0-a0ada.mongodb.net/test?retryWrites=true")
+// mongoose.connect("mongodb+srv://hoangduy:hoangduy@cluster0-a0ada.mongodb.net/test?retryWrites=true")
+mongoose.connect(process.env.MONGODB_URI || "mongodb+srv://hoangduy:hoangduy@cluster0-a0ada.mongodb.net/test?retryWrites=true");
 // mongoose.connect("mongodb+srv://nhd:nhd@firstcluster-tsfhe.mongodb.net/test?retryWrites=true")
     .then(()=>{
         console.log('connect OK');
