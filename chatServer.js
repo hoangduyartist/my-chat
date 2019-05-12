@@ -35,10 +35,11 @@ const User = require('./models/user');
 
 //endSchema
 
-let urlMongo = "mongodb://localhost:27017/node_chat";
-let urlMongo1 = "mongodb+srv://hoangduy:hoangduy@cluster0-a0ada.mongodb.net/test?retryWrites=true";
+// let urlMongo = "mongodb://localhost:27017/node_chat";
+// let urlMongo1 = "mongodb+srv://hoangduy:hoangduy@cluster0-a0ada.mongodb.net/test?retryWrites=true";
+let urlMongo1 = process.env.MONGODB_URI || "mongodb+srv://hoangduy:hoangduy@cluster0-a0ada.mongodb.net/test?retryWrites=true";
 mongoose.Promise = global.Promise;
-mongoose.connect(process.env.MONGODB_URI || urlMongo1, { useNewUrlParser: true }).then(
+mongoose.connect(urlMongo1, { useNewUrlParser: true }).then(
     () => {
         console.log("connect OK");
         
