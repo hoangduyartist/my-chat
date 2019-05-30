@@ -1,79 +1,57 @@
+const express = require("express");
+var app = express();
+var server = require("http").createServer(app);
+var io = require("socket.io").listen(server);
+var PORT=process.env.PORT || 3000;
+server.listen(PORT, ()=>{
+    console.log("Server listen on port: "+PORT);
+});
 
+let users = ["admin","user1"];
 
-/*var app = express();
-app.listen(8080);*/
-const express = require('express');
-const app = express();
 app.use(express.static("public")); //auto access /public in client
 app.set("view engine", "ejs");
 app.set("views", "./views");
 
-var server = require("http").Server(app);
-var io = require("socket.io")(server);
-server.listen(process.env.PORT||3000);
+io.sockets.on('connection', (socket)=>{
+    console.log('Some one connected, socketID: '+socket.id);
 
-//connect to server - socket io
-io.on("connection",(socket)=>{
-    //server send socketID back to client who connected
-    socket.emit("S-send-socketID",socket.id);
-
-    console.log("client "+socket.id+" connected.");
-
+    console.log(users);
     //disconnect
     socket.on("disconnect",()=>{
         console.log("client "+socket.id+" disconnected.");
     });
 
-    //receive data
-    socket.on("C-send-data",(data)=>{
-        console.log("client "+socket.id+" sent: "+data);
-
-        //server send data back to all clients
-        //io.sockets.emit("S-send-data-all",data+" (server send to all)");
-        
-        //server send data back to current client (only you)
-        //socket.emit("S-send-data-all",data+" (server send to you)");
-
-        //server send data back to other clients except you
-        //socket.broadcast.emit("S-send-data-all",data+" (server send all except client who sent)");
-
-        //io.to("socketID").emit()
-    });
-});
-
-// test connect mongoDBatlas
-var mongoClient = require('mongodb').MongoClient;
-const mongoose = require("mongoose");
-let uri = "mongodb+srv://admin:admin@firstcluster-tsfhe.mongodb.net";
-let uri1 = "mongodb+srv://admin:admin@firstcluster-tsfhe.mongodb.net/testDB";
-let mongoURI = "mongodb://admin:admin@firstcluster-shard-00-00-q9efv.mongodb.net:27017,firstcluster-shard-00-01-q9efv.mongodb.net:27017,firstcluster-shard-00-02-q9efv.mongodb.net:27017/testDB?ssl=true&replicaSet=FIRSTCluster-shard-0&authSource=admin&retryWrites=true";
-mongoose.Promise=global.Promise;
-// mongoose.connect(uri,{
-//     reconnectTries: 100,
-//     reconnectInterval: 500,
-//     autoReconnect: true,
-//     // useNewUrlParser: true,
-//     dbName: 'testDB',
-//     retryWrites: true
-// })
-// mongoose.connect("mongodb+srv://hoangduy:hoangduy@cluster0-a0ada.mongodb.net/test?retryWrites=true")
-mongoose.connect(process.env.MONGODB_URI || "mongodb+srv://hoangduy:hoangduy@cluster0-a0ada.mongodb.net/test?retryWrites=true")
-// mongoose.connect("mongodb+srv://nhd:nhd@firstcluster-tsfhe.mongodb.net/test?retryWrites=true")
-    .then(()=>{
-        console.log('connect OK');
+    socket.on("user-login",(username)=>{
+        if(users.indexOf(username)<0){
+            return socket.emit("user-login-res",{content:"user-name is incorrect !", status:"false"});
+            // return console.log("");
+        }
+        socket.username=username;
+        return socket.emit("user-login-res",{content:"user-name is correct !", status:"true"});
     })
-    .catch(e=>{console.log('connect DB failed')})
-// mongoClient.Promise=global.Promise;
-// mongoClient.connect(uri, { useNewUrlParser:true})
-// .then(()=>{
-//     console.log('connected');
-// })
-// .catch(e=>{console.log('connect failed')})
+    socket.on("user-register",(username)=>{
+        if(users.indexOf(username)>=0){
+            return socket.emit("user-register-res",{content:"user-name is exist !", status:"false"});
+            // return console.log("");
+        }
+        users.push(username);
+        return socket.emit("user-register-res",{content:"Register successful !", status:"true"});
+    })
 
-app.get('/',function(req,res){
-    res.render('testchat');
-});
+    //send
+    socket.on("Client-send-record",(sound)=>{
+        console.log(sound);
+        io.sockets.emit("Server-send-record", {content:sound});
+    });
+    socket.on("Client-send-message",(message)=>{
+        // console.log(message);
+        let msgWithUsr = `${socket.username}: ${message}`
+        io.sockets.emit("Server-send-message", {content:msgWithUsr})
+    })
+})
 
-/*const port = 8080
-app.get('/', (req, res) => res.send('Hello World!'))
-app.listen(port, () => console.log(`Example app listening on port ${port}!`))*/
+app.get("/", (req,res)=>{
+    // res.status(200).send("Welcome to chat application");
+    return res.render('index');
+})
