@@ -7,7 +7,8 @@ server.listen(PORT, ()=>{
     console.log("Server listen on port: "+PORT);
 });
 
-let users = ["admin","user1"];
+let users = ["admin"];
+let allMessages = [];
 
 app.use(express.static("public")); //auto access /public in client
 app.set("view engine", "ejs");
@@ -16,7 +17,11 @@ app.set("views", "./views");
 io.sockets.on('connection', (socket)=>{
     console.log('Some one connected, socketID: '+socket.id);
 
-    console.log(users);
+    //load chat history
+    socket.on("load-all-message",data=>{
+        socket.emit("Server-send-allMessage", {content:allMessages, msg:"Loading all messages"});
+    })
+    
     //disconnect
     socket.on("disconnect",()=>{
         console.log("client "+socket.id+" disconnected.");
@@ -24,11 +29,16 @@ io.sockets.on('connection', (socket)=>{
 
     socket.on("user-login",(username)=>{
         if(users.indexOf(username)<0){
-            return socket.emit("user-login-res",{content:"user-name is incorrect !", status:"false"});
+            socket.emit("user-login-res",{content:"user-name is incorrect !", status:"false"});
             // return console.log("");
         }
-        socket.username=username;
-        return socket.emit("user-login-res",{content:"user-name is correct !", status:"true"});
+        else {
+            socket.username=username;
+            //load chat history
+            socket.emit("Server-send-allMessage", {content:allMessages, msg:"all messages"});
+            socket.emit("user-login-res",{content:"user-name is correct !", status:"true"});
+        }
+
     })
     socket.on("user-register",(username)=>{
         if(users.indexOf(username)>=0){
@@ -41,13 +51,17 @@ io.sockets.on('connection', (socket)=>{
 
     //send
     socket.on("Client-send-record",(sound)=>{
-        console.log(sound);
+        console.log("Sound data: "+sound);
         io.sockets.emit("Server-send-record", {content:sound});
+        let msgWithUsr = `${socket.username}: [record]`;
+        io.sockets.emit("Server-send-message", {content:msgWithUsr});
+        allMessages.push(msgWithUsr);
     });
     socket.on("Client-send-message",(message)=>{
         // console.log(message);
         let msgWithUsr = `${socket.username}: ${message}`
         io.sockets.emit("Server-send-message", {content:msgWithUsr})
+        allMessages.push(msgWithUsr);
     })
 })
 
